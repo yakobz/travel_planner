@@ -14,6 +14,8 @@
 
 @property (strong, nonatomic) NSArray *tripsData;
 @property (weak, nonatomic) PFObject *tripData;
+@property (strong, nonatomic) NSString *filterKey;
+@property (strong, nonatomic) id filterData;
 
 @end
 
@@ -21,6 +23,13 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    self.filterData = nil;
+    self.filterKey = nil;
+    
+    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"Filters"
+                                                                              style:UIBarButtonItemStyleDone
+                                                                             target:self
+                                                                             action:@selector(filterPush)];
     
     // Uncomment the following line to preserve selection between presentations.
     // self.clearsSelectionOnViewWillAppear = NO;
@@ -32,9 +41,17 @@
 - (void) viewWillAppear:(BOOL)animated {
     PFQuery *query = [PFQuery queryWithClassName:@"Trips"];
     [query fromLocalDatastore];
-    [query whereKeyExists:@"destination"];
-    self.tripsData = [query findObjects];
     
+    if([self.filterKey isEqualToString:@"destination"]) {
+        [query whereKey:@"destination" equalTo:self.filterData];
+    } else {
+        [query whereKeyExists:@"destination"];
+    }
+    
+    self.filterData = nil;
+    self.filterKey = nil;
+    
+    self.tripsData = [query findObjects];
     [self.tableView reloadData];
 }
 
@@ -90,40 +107,32 @@
     return indexPath;
 }
 
-/*
-// Override to support editing the table view.
-- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
-    if (editingStyle == UITableViewCellEditingStyleDelete) {
-        // Delete the row from the data source
-        [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
-    } else if (editingStyle == UITableViewCellEditingStyleInsert) {
-        // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
-    }   
+- (void)filterPush {
+    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Filters"
+                                                    message:@"Filter by:"
+                                                   delegate:self
+                                          cancelButtonTitle:@"cancel"
+                                          otherButtonTitles:@"destination", nil];
+    [alert show];
 }
-*/
 
-/*
-// Override to support rearranging the table view.
-- (void)tableView:(UITableView *)tableView moveRowAtIndexPath:(NSIndexPath *)fromIndexPath toIndexPath:(NSIndexPath *)toIndexPath {
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
+    if([alertView.title isEqualToString:@"Filters"]) {
+        if(buttonIndex == 1) {
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Destination filter"
+                                                            message:@"Enter destination"
+                                                           delegate:self
+                                                  cancelButtonTitle:@"cancel"
+                                                  otherButtonTitles:@"ok", nil];
+            alert.alertViewStyle = UIAlertViewStylePlainTextInput;
+            [alert show];
+        }
+    } else if([alertView.title isEqualToString:@"Destination filter"]) {
+        self.filterKey = @"destination";
+        self.filterData = [alertView textFieldAtIndex:0].text;
+        [self viewWillAppear:YES];
+    }
 }
-*/
 
-/*
-// Override to support conditional rearranging of the table view.
-- (BOOL)tableView:(UITableView *)tableView canMoveRowAtIndexPath:(NSIndexPath *)indexPath {
-    // Return NO if you do not want the item to be re-orderable.
-    return YES;
-}
-*/
-
-/*
-#pragma mark - Navigation
-
-// In a storyboard-based application, you will often want to do a little preparation before navigation
-- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
-    // Get the new view controller using [segue destinationViewController].
-    // Pass the selected object to the new view controller.
-}
-*/
 
 @end

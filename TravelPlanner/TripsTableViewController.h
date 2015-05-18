@@ -8,6 +8,6 @@
 
 #import <UIKit/UIKit.h>
 
-@interface TripsTableViewController : UITableViewController
+@interface TripsTableViewController : UITableViewController <UIAlertViewDelegate>
 
 @end
